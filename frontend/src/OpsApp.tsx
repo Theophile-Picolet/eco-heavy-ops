@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { NavLink, Route, Routes } from 'react-router-dom';
+import { useEffect, useMemo, useState } from "react";
+import { NavLink, Route, Routes } from "react-router-dom";
 
 type SummaryCard = { label: string; value: string };
 type DashboardPayload = {
@@ -45,64 +45,74 @@ type StatusSnapshot = {
 };
 
 const TEAM_LABELS: Record<string, string> = {
-  support: 'Support premium',
-  ops: 'Exploitation',
-  sales: 'Activation commerciale',
-  legal: 'Conformite'
+  support: "Support premium",
+  ops: "Exploitation",
+  sales: "Activation commerciale",
+  legal: "Conformite",
 };
 
 const STATUS_META: Record<string, { label: string; tone: string }> = {
-  ok: { label: 'Stable', tone: 'stable' },
-  warning: { label: 'Sous surveillance', tone: 'warning' },
-  review: { label: 'A arbitrer', tone: 'review' }
+  ok: { label: "Stable", tone: "stable" },
+  warning: { label: "Sous surveillance", tone: "warning" },
+  review: { label: "A arbitrer", tone: "review" },
 };
 
 const CHART_TITLES = [
-  'Flux support',
-  'Escalades grands comptes',
-  'Validation metier',
-  'Conformite documentaire',
-  'Traitement prioritaire',
-  'Rappels terrain'
+  "Flux support",
+  "Escalades grands comptes",
+  "Validation metier",
+  "Conformite documentaire",
+  "Traitement prioritaire",
+  "Rappels terrain",
 ];
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
   if (!response.ok) {
-    throw new Error('Echec sur ' + url);
+    throw new Error("Echec sur " + url);
   }
   return response.json() as Promise<T>;
 }
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit'
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
 function formatRecordId(record: RecordRow, index: number) {
-  return record.team.slice(0, 3).toUpperCase() + '-' + String(index + 1204).padStart(4, '0');
+  return (
+    record.team.slice(0, 3).toUpperCase() +
+    "-" +
+    String(index + 1204).padStart(4, "0")
+  );
 }
 
 function average(values: number[]) {
   if (values.length === 0) {
     return 0;
   }
-  return Math.round(values.reduce((total, value) => total + value, 0) / values.length);
+  return Math.round(
+    values.reduce((total, value) => total + value, 0) / values.length,
+  );
 }
 
 function statusInfo(status: string) {
-  return STATUS_META[status] ?? { label: status, tone: 'neutral' };
+  return STATUS_META[status] ?? { label: status, tone: "neutral" };
 }
 
 function teamLabel(team: string) {
   return TEAM_LABELS[team] ?? team;
 }
 
-function LoginPage({ onAuthenticate }: { onAuthenticate: (token: string) => void }) {
+function LoginPage({
+  onAuthenticate,
+}: {
+  onAuthenticate: (token: string) => void;
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,11 +121,17 @@ function LoginPage({ onAuthenticate }: { onAuthenticate: (token: string) => void
     setError(null);
 
     try {
-      const session = await fetchJson<{ token: string }>('/api/session', { method: 'POST' });
-      window.localStorage.setItem('ops-session', session.token);
+      const session = await fetchJson<{ token: string }>("/api/session", {
+        method: "POST",
+      });
+      window.localStorage.setItem("ops-session", session.token);
       onAuthenticate(session.token);
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : 'Connexion impossible');
+      setError(
+        loginError instanceof Error
+          ? loginError.message
+          : "Connexion impossible",
+      );
     } finally {
       setPending(false);
     }
@@ -127,7 +143,8 @@ function LoginPage({ onAuthenticate }: { onAuthenticate: (token: string) => void
         <p className="ops-eyebrow">Poste de supervision</p>
         <h1>NorthStar Desk</h1>
         <p>
-          Un cockpit pour suivre les files, arbitrages et signaux faibles sur l'ensemble des flux metier.
+          Un cockpit pour suivre les files, arbitrages et signaux faibles sur
+          l'ensemble des flux metier.
         </p>
         <div className="ops-chip-row">
           <span>Flux centralises</span>
@@ -135,7 +152,7 @@ function LoginPage({ onAuthenticate }: { onAuthenticate: (token: string) => void
           <span>Supervision continue</span>
         </div>
         <button type="button" onClick={handleLogin} disabled={pending}>
-          {pending ? 'Connexion en cours...' : 'Ouvrir le cockpit'}
+          {pending ? "Connexion en cours..." : "Ouvrir le cockpit"}
         </button>
         {error ? <p className="ops-inline-error">{error}</p> : null}
       </section>
@@ -143,13 +160,22 @@ function LoginPage({ onAuthenticate }: { onAuthenticate: (token: string) => void
   );
 }
 
-function Sidebar({ summary, statusSummary }: { summary: SummaryCard[]; statusSummary: StatusSnapshot[] }) {
+function Sidebar({
+  summary,
+  statusSummary,
+}: {
+  summary: SummaryCard[];
+  statusSummary: StatusSnapshot[];
+}) {
   return (
     <aside className="ops-sidebar">
       <div className="ops-sidebar-block">
         <p className="ops-eyebrow">Pilotage</p>
         <strong>NorthStar Desk</strong>
-        <p className="ops-sidebar-copy">Centre de controle pour les arbitrages quotidiens et le suivi des files actives.</p>
+        <p className="ops-sidebar-copy">
+          Centre de controle pour les arbitrages quotidiens et le suivi des
+          files actives.
+        </p>
       </div>
 
       <nav className="ops-nav">
@@ -178,7 +204,9 @@ function Sidebar({ summary, statusSummary }: { summary: SummaryCard[]; statusSum
         <div className="ops-status-stack">
           {statusSummary.map((item) => (
             <div key={item.key} className="ops-status-row">
-              <span className={'ops-status-pill ' + item.tone}>{item.label}</span>
+              <span className={"ops-status-pill " + item.tone}>
+                {item.label}
+              </span>
               <strong>{item.count}</strong>
             </div>
           ))}
@@ -192,7 +220,7 @@ function DashboardPage({
   dashboard,
   statusSummary,
   teamSummary,
-  urgentRecords
+  urgentRecords,
 }: {
   dashboard: DashboardPayload;
   statusSummary: StatusSnapshot[];
@@ -206,10 +234,13 @@ function DashboardPage({
           <p className="ops-eyebrow">Vue generale</p>
           <h1>Suivi temps reel des operations</h1>
           <p>
-            Supervision des demandes, capacite des equipes et signaux a arbitrer dans une seule vue.
+            Supervision des demandes, capacite des equipes et signaux a arbitrer
+            dans une seule vue.
           </p>
         </div>
-        <div className="ops-generated-at">Actualise le {formatDateTime(dashboard.generatedAt)}</div>
+        <div className="ops-generated-at">
+          Actualise le {formatDateTime(dashboard.generatedAt)}
+        </div>
       </section>
 
       <section className="ops-summary-grid">
@@ -238,7 +269,10 @@ function DashboardPage({
                 </div>
                 <div className="ops-bar-row">
                   {chart.points.slice(-12).map((point, pointIndex) => (
-                    <span key={chart.label + '-' + pointIndex} style={{ height: point + '%' }} />
+                    <span
+                      key={chart.label + "-" + pointIndex}
+                      style={{ height: point + "%" }}
+                    />
                   ))}
                 </div>
               </article>
@@ -255,9 +289,19 @@ function DashboardPage({
           </div>
           <div className="ops-log-list">
             {dashboard.logs.map((log, index) => (
-              <article key={log.message + '-' + index} className="ops-log-entry">
+              <article
+                key={log.message + "-" + index}
+                className="ops-log-entry"
+              >
                 <div className="ops-card-header">
-                  <span className={'ops-status-pill ' + (log.level === 'high' ? 'warning' : 'neutral')}>{log.level}</span>
+                  <span
+                    className={
+                      "ops-status-pill " +
+                      (log.level === "high" ? "warning" : "neutral")
+                    }
+                  >
+                    {log.level}
+                  </span>
                   <small>{log.source}</small>
                 </div>
                 <p>{log.message}</p>
@@ -292,7 +336,9 @@ function DashboardPage({
                 </div>
                 <div className="ops-team-meta">
                   <span>{team.average} pts</span>
-                  <small>{team.warningCount + team.reviewCount} a surveiller</small>
+                  <small>
+                    {team.warningCount + team.reviewCount} a surveiller
+                  </small>
                 </div>
               </div>
             ))}
@@ -313,9 +359,13 @@ function DashboardPage({
                 <article key={record.id} className="ops-watch-card">
                   <div className="ops-card-header">
                     <strong>{formatRecordId(record, index)}</strong>
-                    <span className={'ops-status-pill ' + meta.tone}>{meta.label}</span>
+                    <span className={"ops-status-pill " + meta.tone}>
+                      {meta.label}
+                    </span>
                   </div>
-                  <p>{teamLabel(record.team)} · {record.owner}</p>
+                  <p>
+                    {teamLabel(record.team)} · {record.owner}
+                  </p>
                   <small>{record.notes.slice(0, 118)}...</small>
                 </article>
               );
@@ -328,16 +378,17 @@ function DashboardPage({
 }
 
 function TablePage({ records }: { records: RecordRow[] }) {
-  const [selectedId, setSelectedId] = useState(records[0]?.id ?? '');
+  const [selectedId, setSelectedId] = useState(records[0]?.id ?? "");
 
   useEffect(() => {
     if (!records.some((record) => record.id === selectedId)) {
-      setSelectedId(records[0]?.id ?? '');
+      setSelectedId(records[0]?.id ?? "");
     }
   }, [records, selectedId]);
 
   const selectedIndex = records.findIndex((record) => record.id === selectedId);
-  const selectedRecord = selectedIndex >= 0 ? records[selectedIndex] : records[0];
+  const selectedRecord =
+    selectedIndex >= 0 ? records[selectedIndex] : records[0];
 
   return (
     <div className="ops-stack">
@@ -345,7 +396,10 @@ function TablePage({ records }: { records: RecordRow[] }) {
         <div>
           <p className="ops-eyebrow">File active</p>
           <h1>Vue dossier par dossier</h1>
-          <p>Selectionnez une ligne pour consulter l'historique, le contexte et le score de suivi associe.</p>
+          <p>
+            Selectionnez une ligne pour consulter l'historique, le contexte et
+            le score de suivi associe.
+          </p>
         </div>
       </section>
 
@@ -358,12 +412,18 @@ function TablePage({ records }: { records: RecordRow[] }) {
               <button
                 key={record.id}
                 type="button"
-                className={isSelected ? 'ops-record-button selected' : 'ops-record-button'}
+                className={
+                  isSelected
+                    ? "ops-record-button selected"
+                    : "ops-record-button"
+                }
                 onClick={() => setSelectedId(record.id)}
               >
                 <div className="ops-card-header">
                   <strong>{formatRecordId(record, index)}</strong>
-                  <span className={'ops-status-pill ' + meta.tone}>{meta.label}</span>
+                  <span className={"ops-status-pill " + meta.tone}>
+                    {meta.label}
+                  </span>
                 </div>
                 <div className="ops-record-meta">
                   <span>{teamLabel(record.team)}</span>
@@ -371,7 +431,7 @@ function TablePage({ records }: { records: RecordRow[] }) {
                   <span>{formatDateTime(record.createdAt)}</span>
                 </div>
                 <div className="ops-progress-bar">
-                  <span style={{ width: record.score + '%' }} />
+                  <span style={{ width: record.score + "%" }} />
                 </div>
               </button>
             );
@@ -384,9 +444,15 @@ function TablePage({ records }: { records: RecordRow[] }) {
               <div className="ops-section-header">
                 <div>
                   <p className="ops-eyebrow">Detail</p>
-                  <h2>{formatRecordId(selectedRecord, Math.max(selectedIndex, 0))}</h2>
+                  <h2>
+                    {formatRecordId(selectedRecord, Math.max(selectedIndex, 0))}
+                  </h2>
                 </div>
-                <span className={'ops-status-pill ' + statusInfo(selectedRecord.status).tone}>
+                <span
+                  className={
+                    "ops-status-pill " + statusInfo(selectedRecord.status).tone
+                  }
+                >
                   {statusInfo(selectedRecord.status).label}
                 </span>
               </div>
@@ -419,7 +485,10 @@ function TablePage({ records }: { records: RecordRow[] }) {
                 <p className="ops-eyebrow">Historique recent</p>
                 <div className="ops-history-list">
                   {selectedRecord.history.map((entry) => (
-                    <div key={entry.timestamp + entry.message} className="ops-history-row">
+                    <div
+                      key={entry.timestamp + entry.message}
+                      className="ops-history-row"
+                    >
                       <strong>{formatDateTime(entry.timestamp)}</strong>
                       <p>{entry.message}</p>
                     </div>
@@ -437,7 +506,7 @@ function TablePage({ records }: { records: RecordRow[] }) {
 function AnalyticsPage({
   analytics,
   teamSummary,
-  urgentRecords
+  urgentRecords,
 }: {
   analytics: AnalyticsPayload;
   teamSummary: TeamSnapshot[];
@@ -449,7 +518,10 @@ function AnalyticsPage({
         <div>
           <p className="ops-eyebrow">Analyse</p>
           <h1>Tendances et niveaux d'attention</h1>
-          <p>Lecture croisee des volumes, des equipes les plus sollicitees et des dossiers a arbitrer.</p>
+          <p>
+            Lecture croisee des volumes, des equipes les plus sollicitees et des
+            dossiers a arbitrer.
+          </p>
         </div>
       </section>
 
@@ -469,7 +541,7 @@ function AnalyticsPage({
                   <small>{team.total} dossiers</small>
                 </div>
                 <div className="ops-ranking-bar">
-                  <span style={{ width: team.average + '%' }} />
+                  <span style={{ width: team.average + "%" }} />
                 </div>
                 <strong>{team.average}</strong>
               </div>
@@ -493,7 +565,10 @@ function AnalyticsPage({
                 </div>
                 <div className="ops-mini-bars">
                   {chart.points.slice(-18).map((point, pointIndex) => (
-                    <span key={chart.label + '-' + pointIndex} style={{ height: point + '%' }} />
+                    <span
+                      key={chart.label + "-" + pointIndex}
+                      style={{ height: point + "%" }}
+                    />
                   ))}
                 </div>
               </div>
@@ -534,7 +609,9 @@ function AnalyticsPage({
                   <strong>{formatRecordId(record, index)}</strong>
                   <span>{teamLabel(record.team)}</span>
                 </div>
-                <small>{record.history.length} evenement(s) · {record.score} pts</small>
+                <small>
+                  {record.history.length} evenement(s) · {record.score} pts
+                </small>
               </article>
             ))}
           </div>
@@ -551,7 +628,10 @@ function SettingsPage({ settings }: { settings: SettingsPayload }) {
         <div>
           <p className="ops-eyebrow">Reglages</p>
           <h1>Configuration du poste</h1>
-          <p>Parametres de rafraichissement et widgets retenus pour les equipes de supervision.</p>
+          <p>
+            Parametres de rafraichissement et widgets retenus pour les equipes
+            de supervision.
+          </p>
         </div>
       </section>
 
@@ -570,7 +650,7 @@ function SettingsPage({ settings }: { settings: SettingsPayload }) {
             </article>
             <article className="ops-summary-card compact">
               <span>Auto refresh</span>
-              <strong>{settings.autoRefresh ? 'Actif' : 'Desactive'}</strong>
+              <strong>{settings.autoRefresh ? "Actif" : "Desactive"}</strong>
             </article>
             <article className="ops-summary-card compact">
               <span>Widgets conserves</span>
@@ -606,15 +686,22 @@ function SettingsPage({ settings }: { settings: SettingsPayload }) {
           <div className="ops-bullet-stack">
             <div className="ops-bullet-row">
               <strong>Relecture des alertes toutes les 15 minutes</strong>
-              <small>Verifier les niveaux warning et review avant la prochaine bascule.</small>
+              <small>
+                Verifier les niveaux warning et review avant la prochaine
+                bascule.
+              </small>
             </div>
             <div className="ops-bullet-row">
               <strong>Partage des arbitrages en fin de cycle</strong>
-              <small>Centraliser les decisions pour le tour de table suivant.</small>
+              <small>
+                Centraliser les decisions pour le tour de table suivant.
+              </small>
             </div>
             <div className="ops-bullet-row">
               <strong>Controle des pics de charge</strong>
-              <small>Surveiller les equipes dont la moyenne depasse 70 pts.</small>
+              <small>
+                Surveiller les equipes dont la moyenne depasse 70 pts.
+              </small>
             </div>
           </div>
         </article>
@@ -624,7 +711,9 @@ function SettingsPage({ settings }: { settings: SettingsPayload }) {
 }
 
 export default function OpsApp() {
-  const [sessionToken, setSessionToken] = useState<string | null>(() => window.localStorage.getItem('ops-session'));
+  const [sessionToken, setSessionToken] = useState<string | null>(() =>
+    window.localStorage.getItem("ops-session"),
+  );
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [records, setRecords] = useState<RecordRow[]>([]);
   const [settings, setSettings] = useState<SettingsPayload | null>(null);
@@ -637,16 +726,23 @@ export default function OpsApp() {
 
     function loadAll() {
       Promise.all([
-        fetchJson<DashboardPayload>('/api/dashboard'),
-        fetchJson<RecordRow[]>('/api/records'),
-        fetchJson<SettingsPayload>('/api/settings'),
-        fetchJson<AnalyticsPayload>('/api/analytics')
-      ]).then(([dashboardPayload, recordPayload, settingsPayload, analyticsPayload]) => {
-        setDashboard(dashboardPayload);
-        setRecords(recordPayload);
-        setSettings(settingsPayload);
-        setAnalytics(analyticsPayload);
-      });
+        fetchJson<DashboardPayload>("/api/dashboard"),
+        fetchJson<RecordRow[]>("/api/records"),
+        fetchJson<SettingsPayload>("/api/settings"),
+        fetchJson<AnalyticsPayload>("/api/analytics"),
+      ]).then(
+        ([
+          dashboardPayload,
+          recordPayload,
+          settingsPayload,
+          analyticsPayload,
+        ]) => {
+          setDashboard(dashboardPayload);
+          setRecords(recordPayload);
+          setSettings(settingsPayload);
+          setAnalytics(analyticsPayload);
+        },
+      );
     }
 
     loadAll();
@@ -655,33 +751,49 @@ export default function OpsApp() {
   }, [sessionToken]);
 
   const statusSummary = useMemo<StatusSnapshot[]>(() => {
-    const counts = records.reduce<Record<string, number>>((accumulator, record) => {
-      accumulator[record.status] = (accumulator[record.status] ?? 0) + 1;
-      return accumulator;
-    }, {});
+    const counts = records.reduce<Record<string, number>>(
+      (accumulator, record) => {
+        accumulator[record.status] = (accumulator[record.status] ?? 0) + 1;
+        return accumulator;
+      },
+      {},
+    );
 
     return Object.keys(STATUS_META).map((key) => ({
       key,
       label: STATUS_META[key].label,
       tone: STATUS_META[key].tone,
-      count: counts[key] ?? 0
+      count: counts[key] ?? 0,
     }));
   }, [records]);
 
   const teamSummary = useMemo<TeamSnapshot[]>(() => {
     const buckets = records.reduce<
-      Record<string, { total: number; scoreTotal: number; warningCount: number; reviewCount: number }>
+      Record<
+        string,
+        {
+          total: number;
+          scoreTotal: number;
+          warningCount: number;
+          reviewCount: number;
+        }
+      >
     >((accumulator, record) => {
       if (!accumulator[record.team]) {
-        accumulator[record.team] = { total: 0, scoreTotal: 0, warningCount: 0, reviewCount: 0 };
+        accumulator[record.team] = {
+          total: 0,
+          scoreTotal: 0,
+          warningCount: 0,
+          reviewCount: 0,
+        };
       }
 
       accumulator[record.team].total += 1;
       accumulator[record.team].scoreTotal += record.score;
-      if (record.status === 'warning') {
+      if (record.status === "warning") {
         accumulator[record.team].warningCount += 1;
       }
-      if (record.status === 'review') {
+      if (record.status === "review") {
         accumulator[record.team].reviewCount += 1;
       }
 
@@ -695,15 +807,20 @@ export default function OpsApp() {
         total: bucket.total,
         average: Math.round(bucket.scoreTotal / bucket.total),
         warningCount: bucket.warningCount,
-        reviewCount: bucket.reviewCount
+        reviewCount: bucket.reviewCount,
       }))
       .sort((left, right) => right.average - left.average);
   }, [records]);
 
   const urgentRecords = useMemo(() => {
     return [...records]
-      .filter((record) => record.status !== 'ok' || record.score >= 70)
-      .sort((left, right) => right.score + right.history.length * 4 - (left.score + left.history.length * 4))
+      .filter((record) => record.status !== "ok" || record.score >= 70)
+      .sort(
+        (left, right) =>
+          right.score +
+          right.history.length * 4 -
+          (left.score + left.history.length * 4),
+      )
       .slice(0, 6);
   }, [records]);
 
@@ -712,7 +829,11 @@ export default function OpsApp() {
   }
 
   if (!dashboard || !settings || !analytics) {
-    return <main className="ops-loading-shell"><p>Chargement du cockpit...</p></main>;
+    return (
+      <main className="ops-loading-shell">
+        <p>Chargement du cockpit...</p>
+      </main>
+    );
   }
 
   return (
@@ -734,9 +855,18 @@ export default function OpsApp() {
           <Route path="/table" element={<TablePage records={records} />} />
           <Route
             path="/analytics"
-            element={<AnalyticsPage analytics={analytics} teamSummary={teamSummary} urgentRecords={urgentRecords} />}
+            element={
+              <AnalyticsPage
+                analytics={analytics}
+                teamSummary={teamSummary}
+                urgentRecords={urgentRecords}
+              />
+            }
           />
-          <Route path="/settings" element={<SettingsPage settings={settings} />} />
+          <Route
+            path="/settings"
+            element={<SettingsPage settings={settings} />}
+          />
         </Routes>
       </main>
     </div>

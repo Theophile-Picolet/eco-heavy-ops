@@ -9,9 +9,13 @@
     "dev": "concurrently -n front,back -c cyan,magenta \"npm run dev --workspace frontend\" \"npm run dev --workspace backend\"",
     "build": "npm run build --workspace backend && npm run build --workspace frontend",
     "analyze": "node scripts/analyze.mjs",
-    "lighthouse": "node scripts/lighthouse.mjs"
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "lint": "biome lint .",
+    "format": "biome format . --write",
+    "format:check": "biome format . --check"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
     "concurrently": "^9.0.1"
   }
 }

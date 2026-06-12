@@ -13,10 +13,18 @@
   --ops-yellow: #f4c95d;
   color: var(--ops-text);
   background:
-    radial-gradient(circle at top left, rgba(43, 183, 164, 0.16), transparent 32%),
-    radial-gradient(circle at top right, rgba(255, 159, 67, 0.14), transparent 28%),
+    radial-gradient(
+      circle at top left,
+      rgba(43, 183, 164, 0.16),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(255, 159, 67, 0.14),
+      transparent 28%
+    ),
     linear-gradient(180deg, #0b141c 0%, #10202d 100%);
-  font-family: 'IBM Plex Sans', 'Trebuchet MS', sans-serif;
+  font-family: "IBM Plex Sans", "Trebuchet MS", sans-serif;
 }
 
 * {
@@ -293,7 +301,11 @@ a {
 .ops-hero-panel {
   border: 1px solid var(--ops-line);
   border-radius: 30px;
-  background: linear-gradient(135deg, rgba(20, 35, 49, 0.96), rgba(12, 23, 32, 0.88));
+  background: linear-gradient(
+    135deg,
+    rgba(20, 35, 49, 0.96),
+    rgba(12, 23, 32, 0.88)
+  );
   display: grid;
   gap: 18px;
 }
