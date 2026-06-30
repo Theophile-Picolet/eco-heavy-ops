@@ -1,8 +1,9 @@
-import express from "express";
 import cors from "cors";
+import express from "express";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readFileSync } from "node:fs";
+import zlib from "node:zlib";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "..", "..");
@@ -14,16 +15,66 @@ function readJson(relativePath: string) {
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.use((req, res, next) => {
+  const acceptEncoding = req.headers["accept-encoding"] || "";
+  const originalJson = res.json;
+
+  res.json = function (data) {
+    const jsonStr = JSON.stringify(data);
+    let compressed: Buffer | undefined;
+
+    if (acceptEncoding.includes("br")) {
+      compressed = zlib.brotliCompressSync(jsonStr, {
+        params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 6 },
+      });
+      res.setHeader("Content-Encoding", "br");
+    } else if (acceptEncoding.includes("gzip")) {
+      compressed = zlib.gzipSync(jsonStr, { level: 6 });
+      res.setHeader("Content-Encoding", "gzip");
+    }
+
+    if (compressed) {
+      res.setHeader("Content-Length", compressed.length);
+      return res.end(compressed);
+    }
+
+    res.setHeader("Content-Length", jsonStr.length);
+    return res.end(jsonStr);
+  } as typeof originalJson;
+
+  next();
+});
+
 app.use((req, _res, next) => {
   console.log("[ops-api] " + req.method + " " + req.url);
   next();
 });
 app.use(
   "/assets",
-  express.static(path.join(projectRoot, "assets"), { maxAge: 0 }),
+  express.static(path.join(projectRoot, "assets"), {
+    maxAge: 86400000,
+    etag: true,
+  }),
 );
-app.use((_req, res, next) => {
-  res.setHeader("Cache-Control", "no-store");
+
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/")) {
+    const isSession = req.method === "POST" && req.path === "/api/session";
+    const isStaticData = [
+      "/api/records",
+      "/api/settings",
+      "/api/analytics",
+    ].includes(req.path);
+
+    if (isSession) {
+      res.setHeader("Cache-Control", "no-store");
+    } else if (isStaticData) {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    } else {
+      res.setHeader("Cache-Control", "public, max-age=300, must-revalidate");
+    }
+  }
   next();
 });
 
@@ -37,7 +88,6 @@ app.get("/api/dashboard", (_req, res) => {
     summary: analytics.summary,
     charts: analytics.charts,
     logs: analytics.logs.slice(0, 20),
-    generatedAt: new Date().toISOString(),
   });
 });
 

@@ -746,7 +746,7 @@ export default function OpsApp() {
     }
 
     loadAll();
-    const timer = window.setInterval(loadAll, 5000);
+    const timer = window.setInterval(loadAll, 300000);
     return () => window.clearInterval(timer);
   }, [sessionToken]);
 
