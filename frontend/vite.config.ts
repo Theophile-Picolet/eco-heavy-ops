@@ -16,6 +16,10 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ["react", "react-dom", "react-router-dom"],
+          dashboard: ["./src/pages/Dashboard"],
+          table: ["./src/pages/Table"],
+          analytics: ["./src/pages/Analytics"],
+          settings: ["./src/pages/Settings"],
         },
       },
     },

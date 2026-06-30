@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
 
 type SummaryCard = { label: string; value: string };
@@ -65,6 +65,19 @@ const CHART_TITLES = [
   "Traitement prioritaire",
   "Rappels terrain",
 ];
+
+const DashboardPageLazy = lazy(() => import("./pages/Dashboard"));
+const TablePageLazy = lazy(() => import("./pages/Table"));
+const AnalyticsPageLazy = lazy(() => import("./pages/Analytics"));
+const SettingsPageLazy = lazy(() => import("./pages/Settings"));
+
+function LoadingFallback() {
+  return (
+    <main className="ops-loading-shell">
+      <p>Chargement de la page...</p>
+    </main>
+  );
+}
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -216,7 +229,7 @@ function Sidebar({
   );
 }
 
-function DashboardPage({
+export function DashboardPage({
   dashboard,
   statusSummary,
   teamSummary,
@@ -377,7 +390,7 @@ function DashboardPage({
   );
 }
 
-function TablePage({ records }: { records: RecordRow[] }) {
+export function TablePage({ records }: { records: RecordRow[] }) {
   const [selectedId, setSelectedId] = useState(records[0]?.id ?? "");
 
   useEffect(() => {
@@ -503,7 +516,7 @@ function TablePage({ records }: { records: RecordRow[] }) {
   );
 }
 
-function AnalyticsPage({
+export function AnalyticsPage({
   analytics,
   teamSummary,
   urgentRecords,
@@ -621,7 +634,7 @@ function AnalyticsPage({
   );
 }
 
-function SettingsPage({ settings }: { settings: SettingsPayload }) {
+export function SettingsPage({ settings }: { settings: SettingsPayload }) {
   return (
     <div className="ops-stack">
       <section className="ops-hero-panel compact">
@@ -840,34 +853,36 @@ export default function OpsApp() {
     <div className="ops-app">
       <Sidebar summary={dashboard.summary} statusSummary={statusSummary} />
       <main className="ops-content">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <DashboardPage
-                dashboard={dashboard}
-                statusSummary={statusSummary}
-                teamSummary={teamSummary}
-                urgentRecords={urgentRecords}
-              />
-            }
-          />
-          <Route path="/table" element={<TablePage records={records} />} />
-          <Route
-            path="/analytics"
-            element={
-              <AnalyticsPage
-                analytics={analytics}
-                teamSummary={teamSummary}
-                urgentRecords={urgentRecords}
-              />
-            }
-          />
-          <Route
-            path="/settings"
-            element={<SettingsPage settings={settings} />}
-          />
-        </Routes>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <DashboardPageLazy
+                  dashboard={dashboard}
+                  statusSummary={statusSummary}
+                  teamSummary={teamSummary}
+                  urgentRecords={urgentRecords}
+                />
+              }
+            />
+            <Route path="/table" element={<TablePageLazy records={records} />} />
+            <Route
+              path="/analytics"
+              element={
+                <AnalyticsPageLazy
+                  analytics={analytics}
+                  teamSummary={teamSummary}
+                  urgentRecords={urgentRecords}
+                />
+              }
+            />
+            <Route
+              path="/settings"
+              element={<SettingsPageLazy settings={settings} />}
+            />
+          </Routes>
+        </Suspense>
       </main>
     </div>
   );
