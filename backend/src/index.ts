@@ -51,6 +51,16 @@ app.use((req, _res, next) => {
   next();
 });
 
+// Serve robots.txt with correct Content-Type
+app.get("/robots.txt", (_req, res) => {
+  res.type("text/plain").sendFile(path.join(__dirname, "..", "public", "robots.txt"));
+});
+
+// Serve sitemap.xml with correct Content-Type
+app.get("/sitemap.xml", (_req, res) => {
+  res.type("application/xml").sendFile(path.join(__dirname, "..", "public", "sitemap.xml"));
+});
+
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.use(
