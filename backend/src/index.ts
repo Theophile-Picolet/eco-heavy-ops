@@ -50,13 +50,18 @@ app.use((req, _res, next) => {
   console.log("[ops-api] " + req.method + " " + req.url);
   next();
 });
+
+app.use(express.static(path.join(__dirname, "..", "public")));
+
 app.use(
   "/assets",
-  express.static(path.join(projectRoot, "assets"), {
+  express.static(path.join(projectRoot, "frontend", "dist", "assets"), {
     maxAge: 86400000,
     etag: true,
   }),
 );
+
+app.use(express.static(path.join(projectRoot, "frontend", "dist")));
 
 app.use((req, res, next) => {
   if (req.path.startsWith("/api/")) {
@@ -88,6 +93,7 @@ app.get("/api/dashboard", (_req, res) => {
     summary: analytics.summary,
     charts: analytics.charts,
     logs: analytics.logs.slice(0, 20),
+    generatedAt: new Date().toISOString(),
   });
 });
 
@@ -102,6 +108,33 @@ app.get("/api/analytics", (_req, res) => {
 app.get("/api/settings", (_req, res) => {
   const analytics = readJson("data/analytics.json");
   res.json(analytics.settings);
+});
+
+app.get("/api/meta", (_req, res) => {
+  const pages = {
+    "/": {
+      title: "Heavy Ops Dashboard",
+      description: "Supervision centralisée des opérations, flux et arbitrages en temps réel",
+      keywords: "dashboard, supervision, opérations",
+    },
+    "/table": {
+      title: "File Active - Heavy Ops",
+      description: "Gestion détaillée des dossiers, historique et suivi par équipe",
+      keywords: "dossiers, file, suivi",
+    },
+    "/analytics": {
+      title: "Analyse & Tendances - Heavy Ops",
+      description: "Tendances des flux, charge des équipes et signaux critiques",
+      keywords: "analytics, tendances, charges",
+    },
+    "/settings": {
+      title: "Paramètres - Heavy Ops",
+      description: "Configuration du poste de supervision et des widgets",
+      keywords: "settings, configuration, préférences",
+    },
+  };
+
+  res.json(pages);
 });
 
 app.listen(4100, () => {

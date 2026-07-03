@@ -1,12 +1,12 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
+import { usePageMeta } from "./hooks/usePageMeta";
 
 type SummaryCard = { label: string; value: string };
 type DashboardPayload = {
   summary: SummaryCard[];
   charts: Array<{ label: string; points: number[] }>;
   logs: Array<{ level: string; message: string; source: string }>;
-  generatedAt: string;
 };
 type RecordRow = {
   id: string;
@@ -250,9 +250,6 @@ export function DashboardPage({
             Supervision des demandes, capacite des equipes et signaux a arbitrer
             dans une seule vue.
           </p>
-        </div>
-        <div className="ops-generated-at">
-          Actualise le {formatDateTime(dashboard.generatedAt)}
         </div>
       </section>
 
@@ -724,6 +721,8 @@ export function SettingsPage({ settings }: { settings: SettingsPayload }) {
 }
 
 export default function OpsApp() {
+  usePageMeta();
+
   const [sessionToken, setSessionToken] = useState<string | null>(() =>
     window.localStorage.getItem("ops-session"),
   );
@@ -759,6 +758,7 @@ export default function OpsApp() {
     }
 
     loadAll();
+    // Polling every 5 minutes (300000ms)
     const timer = window.setInterval(loadAll, 300000);
     return () => window.clearInterval(timer);
   }, [sessionToken]);
